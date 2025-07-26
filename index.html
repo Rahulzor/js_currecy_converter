@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Currency Converter Pro</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: linear-gradient(135deg, #1d2b64, #f8cdda);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      color: #fff;
+    }
+
+    .container {
+      background: rgba(255, 255, 255, 0.05);
+      padding: 40px;
+      border-radius: 20px;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+      width: 100%;
+      max-width: 500px;
+      text-align: center;
+      animation: fadeIn 1s ease-in-out;
+    }
+
+    h1 {
+      margin-bottom: 1rem;
+      font-weight: 600;
+      font-size: 2rem;
+      color: #ffeba7;
+    }
+
+    .converter-box {
+      display: flex;
+      gap: 1rem;
+      margin: 1rem 0;
+      justify-content: space-between;
+      flex-wrap: wrap;
+    }
+
+    select, input {
+      width: 100%;
+      padding: 10px 15px;
+      font-size: 1rem;
+      border-radius: 10px;
+      border: none;
+      margin-bottom: 0.5rem;
+      background-color: #fff;
+      color: #333;
+      outline: none;
+    }
+
+    .converter-column {
+      flex: 1;
+      min-width: 45%;
+    }
+
+    button {
+      padding: 10px 20px;
+      border: none;
+      background-color: #ffeba7;
+      color: #1f1f1f;
+      font-size: 1rem;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #ffd86b;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 500px) {
+      .converter-box {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>Currency Converter Pro</h1>
+    <div class="converter-box">
+      <div class="converter-column">
+        <select id="from-currency"></select>
+        <input type="number" id="amount" placeholder="Enter amount" />
+      </div>
+      <div class="converter-column">
+        <select id="to-currency"></select>
+        <input type="text" id="converted" placeholder="Converted" disabled />
+      </div>
+    </div>
+    <button id="convert-btn">Convert</button>
+  </div>
+
+  <script>
+    const fromSelect = document.getElementById('from-currency');
+    const toSelect = document.getElementById('to-currency');
+    const amountInput = document.getElementById('amount');
+    const convertedInput = document.getElementById('converted');
+    const convertBtn = document.getElementById('convert-btn');
+
+    fetch('https://api.frankfurter.app/currencies')
+      .then(res => res.json())
+      .then(data => {
+        const entries = Object.entries(data);
+        entries.forEach(([code, name]) => {
+          const option1 = document.createElement('option');
+          const option2 = document.createElement('option');
+          option1.value = option2.value = code;
+          option1.textContent = `${code} - ${name}`;
+          option2.textContent = `${code} - ${name}`;
+          fromSelect.appendChild(option1);
+          toSelect.appendChild(option2);
+        });
+
+        fromSelect.value = 'USD';
+        toSelect.value = 'INR';
+      });
+
+    convertBtn.addEventListener('click', () => {
+      const from = fromSelect.value;
+      const to = toSelect.value;
+      const amount = amountInput.value;
+
+      if (from === to) {
+        alert('Please select different currencies.');
+        return;
+      }
+
+      if (amount === '' || amount <= 0) {
+        alert('Please enter a valid amount.');
+        return;
+      }
+
+      fetch(`https://api.frankfurter.app/latest?amount=${amount}&from=${from}&to=${to}`)
+        .then(res => res.json())
+        .then(data => {
+          convertedInput.value = Object.values(data.rates)[0].toFixed(2);
+        });
+    });
+  </script>
+</body>
+</html>
